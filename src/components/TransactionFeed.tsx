@@ -37,11 +37,11 @@ function getAmountClass(amount: number): string {
 function getTxnIcon(type: string) {
   switch (type) {
     case 'DEBIT':
-      return <ArrowUpRight className="w-3.5 h-3.5 text-severity-high" />;
+      return <ArrowUpRight className="w-3.5 h-3.5 text-severity-high flex-shrink-0" />;
     case 'CREDIT':
-      return <ArrowDownLeft className="w-3.5 h-3.5 text-data-positive" />;
+      return <ArrowDownLeft className="w-3.5 h-3.5 text-data-positive flex-shrink-0" />;
     case 'TRANSFER':
-      return <ArrowLeftRight className="w-3.5 h-3.5 text-primary" />;
+      return <ArrowLeftRight className="w-3.5 h-3.5 text-primary flex-shrink-0" />;
     default:
       return null;
   }
@@ -89,16 +89,16 @@ export function TransactionFeed({
         </span>
       </div>
 
-      {/* Table Header */}
-      <div className="px-4 py-2 bg-muted/30 border-b border-border/50">
-        <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          <div className="col-span-3">Transaction ID</div>
-          <div className="col-span-2">Account</div>
-          <div className="col-span-1">Type</div>
-          <div className="col-span-2 text-right">Amount</div>
-          <div className="col-span-2">Location</div>
-          <div className="col-span-1">Time</div>
-          <div className="col-span-1"></div>
+      {/* Table Header - improved spacing */}
+      <div className="px-4 py-2.5 bg-muted/30 border-b border-border/50">
+        <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          <div className="w-[140px] flex-shrink-0">Txn ID</div>
+          <div className="w-[100px] flex-shrink-0">Account</div>
+          <div className="w-[80px] flex-shrink-0">Type</div>
+          <div className="w-[120px] flex-shrink-0 text-right">Amount</div>
+          <div className="flex-1 min-w-[100px]">Location</div>
+          <div className="w-[70px] flex-shrink-0 text-right">Time</div>
+          <div className="w-[40px] flex-shrink-0"></div>
         </div>
       </div>
 
@@ -118,40 +118,57 @@ export function TransactionFeed({
           transactions.map((txn) => (
             <div
               key={txn.transactionId}
-              className={`px-4 py-2.5 border-b border-border/30 data-row ${
+              className={`px-4 py-3 border-b border-border/30 data-row ${
                 newTxnIds.has(txn.transactionId) ? 'data-row-new' : ''
               }`}
             >
-              <div className="grid grid-cols-12 gap-2 items-center text-sm">
-                <div className="col-span-3 font-mono text-xs truncate" title={txn.transactionId}>
+              <div className="flex items-center gap-3 text-sm">
+                {/* Transaction ID */}
+                <div 
+                  className="w-[140px] flex-shrink-0 font-mono text-xs truncate" 
+                  title={txn.transactionId}
+                >
                   {txn.transactionId}
                 </div>
+                
+                {/* Account ID - clickable */}
                 <button 
-                  className="col-span-2 font-mono text-xs text-primary hover:underline text-left truncate"
+                  className="w-[100px] flex-shrink-0 font-mono text-xs text-primary hover:underline text-left truncate"
                   onClick={() => onInvestigate(txn.accountId)}
-                  title={txn.accountId}
+                  title={`Investigate ${txn.accountId}`}
                 >
                   {txn.accountId}
                 </button>
-                <div className="col-span-1 flex items-center gap-1">
+                
+                {/* Type */}
+                <div className="w-[80px] flex-shrink-0 flex items-center gap-1.5">
                   {getTxnIcon(txn.txnType)}
                   <span className="text-xs">{txn.txnType}</span>
                 </div>
-                <div className={`col-span-2 text-right font-mono text-sm ${getAmountClass(txn.amount)}`}>
+                
+                {/* Amount */}
+                <div className={`w-[120px] flex-shrink-0 text-right font-mono text-sm ${getAmountClass(txn.amount)}`}>
                   {formatAmount(txn.amount)}
                 </div>
-                <div className="col-span-2 flex items-center gap-1 text-xs text-muted-foreground truncate">
+                
+                {/* Location */}
+                <div className="flex-1 min-w-[100px] flex items-center gap-1.5 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3 flex-shrink-0" />
                   <span className="truncate" title={txn.location}>{txn.location}</span>
                 </div>
-                <div className="col-span-1 font-mono text-xs text-muted-foreground">
+                
+                {/* Time */}
+                <div className="w-[70px] flex-shrink-0 font-mono text-xs text-muted-foreground text-right">
                   {formatTime(txn.timestamp)}
                 </div>
-                <div className="col-span-1 flex justify-end">
+                
+                {/* Investigate Button */}
+                <div className="w-[40px] flex-shrink-0 flex justify-end">
                   <Button
                     variant="investigate"
                     size="xs"
                     onClick={() => onInvestigate(txn.accountId)}
+                    title="Investigate account"
                   >
                     <Search className="w-3 h-3" />
                   </Button>
