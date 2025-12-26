@@ -6,6 +6,7 @@ interface SummaryBandProps {
   fraudAlertsLastHour: number;
   alertsPerSecond: number;
   topRiskyAccounts: Array<{ accountId: string; alertCount: number }>;
+  selectedAccountId: string | null;
   onAccountClick: (accountId: string) => void;
 }
 
@@ -14,11 +15,12 @@ export function SummaryBand({
   fraudAlertsLastHour,
   alertsPerSecond,
   topRiskyAccounts,
+  selectedAccountId,
   onAccountClick,
 }: SummaryBandProps) {
   return (
     <div className="glass-card p-4">
-      <div className="flex items-center justify-between gap-6">
+      <div className="flex items-center justify-between gap-6 flex-wrap">
         {/* Total Transactions */}
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10">
@@ -34,7 +36,7 @@ export function SummaryBand({
           </div>
         </div>
 
-        <div className="w-px h-12 bg-border" />
+        <div className="w-px h-12 bg-border hidden md:block" />
 
         {/* Fraud Alerts */}
         <div className="flex items-center gap-3">
@@ -51,7 +53,7 @@ export function SummaryBand({
           </div>
         </div>
 
-        <div className="w-px h-12 bg-border" />
+        <div className="w-px h-12 bg-border hidden md:block" />
 
         {/* Alerts Per Second */}
         <div className="flex items-center gap-3">
@@ -71,7 +73,7 @@ export function SummaryBand({
           </div>
         </div>
 
-        <div className="w-px h-12 bg-border" />
+        <div className="w-px h-12 bg-border hidden md:block" />
 
         {/* Top Risky Accounts */}
         <div className="flex items-center gap-3 flex-1">
@@ -84,20 +86,34 @@ export function SummaryBand({
             </p>
             <div className="flex items-center gap-2 flex-wrap">
               {topRiskyAccounts.length > 0 ? (
-                topRiskyAccounts.map((account) => (
-                  <button
-                    key={account.accountId}
-                    onClick={() => onAccountClick(account.accountId)}
-                    className="group flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 hover:bg-muted transition-colors"
-                  >
-                    <span className="font-mono text-xs group-hover:text-primary transition-colors">
-                      {account.accountId}
-                    </span>
-                    <Badge variant="high" className="text-[10px] px-1.5 py-0">
-                      {account.alertCount}
-                    </Badge>
-                  </button>
-                ))
+                topRiskyAccounts.map((account) => {
+                  const isSelected = selectedAccountId === account.accountId;
+                  return (
+                    <button
+                      key={account.accountId}
+                      onClick={() => onAccountClick(account.accountId)}
+                      className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-200 ${
+                        isSelected 
+                          ? 'bg-primary text-primary-foreground ring-2 ring-primary/50 scale-105' 
+                          : 'bg-muted/50 hover:bg-muted hover:scale-102'
+                      }`}
+                    >
+                      <span className={`font-mono text-xs transition-colors ${
+                        isSelected ? 'text-primary-foreground font-semibold' : 'group-hover:text-primary'
+                      }`}>
+                        {account.accountId}
+                      </span>
+                      <Badge 
+                        variant={isSelected ? 'outline' : 'high'} 
+                        className={`text-[10px] px-1.5 py-0 ${
+                          isSelected ? 'bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30' : ''
+                        }`}
+                      >
+                        {account.alertCount}
+                      </Badge>
+                    </button>
+                  );
+                })
               ) : (
                 <span className="text-sm text-muted-foreground">No alerts</span>
               )}

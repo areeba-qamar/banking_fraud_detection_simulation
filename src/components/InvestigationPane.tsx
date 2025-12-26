@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
-import { X, User, AlertTriangle, TrendingUp, Shield, CheckCircle, XCircle, Lock, Loader2 } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { X, User, AlertTriangle, TrendingUp, Shield, CheckCircle, XCircle, Lock, Loader2, Filter, Clock, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Transaction, FraudAlert, AccountProfile } from '@/types/fraud';
+import { Input } from '@/components/ui/input';
+import { Transaction, FraudAlert, AccountProfile, TimeWindow } from '@/types/fraud';
 import { fetchAccountTransactions, fetchAccountAlerts, fetchAccountProfile, acknowledgeAlert, markFalsePositive, freezeAccount } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,6 +12,25 @@ interface InvestigationPaneProps {
   accountId: string | null;
   onClose: () => void;
 }
+
+interface PaneFilters {
+  minAmount: number;
+  timeWindow: TimeWindow;
+}
+
+const timeWindows: { value: TimeWindow; label: string }[] = [
+  { value: '5m', label: '5m' },
+  { value: '15m', label: '15m' },
+  { value: '1h', label: '1h' },
+];
+
+const getTimeWindowMs = (window: TimeWindow): number => {
+  switch (window) {
+    case '5m': return 5 * 60 * 1000;
+    case '15m': return 15 * 60 * 1000;
+    case '1h': return 60 * 60 * 1000;
+  }
+};
 
 function formatAmount(amount: number): string {
   return new Intl.NumberFormat('en-PK', {
@@ -37,6 +57,11 @@ export function InvestigationPane({ accountId, onClose }: InvestigationPaneProps
   const [alerts, setAlerts] = useState<FraudAlert[]>([]);
   const [profile, setProfile] = useState<AccountProfile | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [filters, setFilters] = useState<PaneFilters>({
+    minAmount: 0,
+    timeWindow: '1h',
+  });
+  const [showFilters, setShowFilters] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -67,6 +92,18 @@ export function InvestigationPane({ accountId, onClose }: InvestigationPaneProps
 
     loadData();
   }, [accountId, toast]);
+
+  // Filter transactions
+  const filteredTransactions = useMemo(() => {
+    const now = Date.now();
+    const windowMs = getTimeWindowMs(filters.timeWindow);
+    
+    return transactions.filter((txn) => {
+      if (new Date(txn.timestamp).getTime() < now - windowMs) return false;
+      if (filters.minAmount > 0 && txn.amount < filters.minAmount) return false;
+      return true;
+    });
+  }, [transactions, filters]);
 
   const handleAcknowledge = async (alertId: string) => {
     setActionLoading(alertId);
@@ -135,10 +172,55 @@ export function InvestigationPane({ accountId, onClose }: InvestigationPaneProps
             <p className="font-mono text-sm text-primary">{accountId}</p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={showFilters ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => setShowFilters(!showFilters)}
+            title="Toggle filters"
+          >
+            <Filter className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
+
+      {/* Filters Panel */}
+      {showFilters && (
+        <div className="px-4 py-3 bg-muted/30 border-b border-border/50 flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-muted-foreground" />
+            <Input
+              type="number"
+              placeholder="Min amount"
+              value={filters.minAmount || ''}
+              onChange={(e) => setFilters(prev => ({ 
+                ...prev, 
+                minAmount: e.target.value ? Number(e.target.value) : 0 
+              }))}
+              className="h-7 w-24 text-xs font-mono bg-background/50"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <div className="flex gap-1">
+              {timeWindows.map((tw) => (
+                <Button
+                  key={tw.value}
+                  variant={filters.timeWindow === tw.value ? 'default' : 'ghost'}
+                  size="xs"
+                  onClick={() => setFilters(prev => ({ ...prev, timeWindow: tw.value }))}
+                  className="font-mono text-xs h-7 px-2"
+                >
+                  {tw.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex-1 flex items-center justify-center">
@@ -256,10 +338,10 @@ export function InvestigationPane({ accountId, onClose }: InvestigationPaneProps
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
-                Recent Transactions ({transactions.length})
+                Recent Transactions ({filteredTransactions.length}/{transactions.length})
               </h3>
               <div className="space-y-1">
-                {transactions.slice(0, 20).map((txn) => (
+                {filteredTransactions.slice(0, 50).map((txn) => (
                   <div key={txn.transactionId} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
                     <div className="flex-1 min-w-0">
                       <p className="font-mono text-xs truncate">{txn.transactionId}</p>
@@ -275,6 +357,11 @@ export function InvestigationPane({ accountId, onClose }: InvestigationPaneProps
                     </div>
                   </div>
                 ))}
+                {filteredTransactions.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No transactions match the current filters
+                  </p>
+                )}
               </div>
             </div>
           </div>
