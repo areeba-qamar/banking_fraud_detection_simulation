@@ -1,29 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Header } from './Header';
 import { SummaryBand } from './SummaryBand';
-import { FilterBar } from './FilterBar';
 import { TransactionFeed } from './TransactionFeed';
 import { FraudAlerts } from './FraudAlerts';
 import { InvestigationPane } from './InvestigationPane';
 import { useSSE } from '@/hooks/useSSE';
 import { useMetrics } from '@/hooks/useMetrics';
-import { FilterState, FraudAlert, TimeWindow } from '@/types/fraud';
-
-const getTimeWindowMs = (window: TimeWindow): number => {
-  switch (window) {
-    case '5m': return 5 * 60 * 1000;
-    case '15m': return 15 * 60 * 1000;
-    case '1h': return 60 * 60 * 1000;
-  }
-};
+import { FraudAlert } from '@/types/fraud';
 
 export function FraudDashboard() {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-  const [filters, setFilters] = useState<FilterState>({
-    accountId: '',
-    minAmount: 0,
-    timeWindow: '15m',
-  });
 
   const { transactions, alerts, transactionStatus, alertStatus, reconnect } = useSSE({
     useMockData: true,
@@ -31,45 +17,6 @@ export function FraudDashboard() {
   });
 
   const metrics = useMetrics(transactions, alerts);
-
-  // Filter transactions
-  const filteredTransactions = useMemo(() => {
-    const now = Date.now();
-    const windowMs = getTimeWindowMs(filters.timeWindow);
-    
-    return transactions.filter((txn) => {
-      // Time window filter
-      if (new Date(txn.timestamp).getTime() < now - windowMs) return false;
-      
-      // Account ID filter
-      if (filters.accountId && !txn.accountId.toLowerCase().includes(filters.accountId.toLowerCase())) {
-        return false;
-      }
-      
-      // Minimum amount filter
-      if (filters.minAmount > 0 && txn.amount < filters.minAmount) return false;
-      
-      return true;
-    });
-  }, [transactions, filters]);
-
-  // Filter alerts
-  const filteredAlerts = useMemo(() => {
-    const now = Date.now();
-    const windowMs = getTimeWindowMs(filters.timeWindow);
-    
-    return alerts.filter((alert) => {
-      // Time window filter
-      if (new Date(alert.detectedAt).getTime() < now - windowMs) return false;
-      
-      // Account ID filter
-      if (filters.accountId && !alert.accountId.toLowerCase().includes(filters.accountId.toLowerCase())) {
-        return false;
-      }
-      
-      return true;
-    });
-  }, [alerts, filters]);
 
   const handleAlertClick = (alert: FraudAlert) => {
     setSelectedAccountId(alert.accountId);
@@ -94,7 +41,7 @@ export function FraudDashboard() {
 
       {/* Main Content */}
       <main className="flex-1 p-4 space-y-4">
-        {/* Summary Band - pass selected account for highlighting */}
+        {/* Summary Band - read-only monitoring view */}
         <SummaryBand
           totalTransactionsToday={metrics.totalTransactionsToday}
           fraudAlertsLastHour={metrics.fraudAlertsLastHour}
@@ -104,15 +51,12 @@ export function FraudDashboard() {
           onAccountClick={handleAccountClick}
         />
 
-        {/* Filter Bar */}
-        <FilterBar filters={filters} onFilterChange={setFilters} />
-
-        {/* Main Dashboard Grid */}
-        <div className="grid grid-cols-12 gap-4" style={{ height: 'calc(100vh - 320px)', minHeight: '500px' }}>
+        {/* Main Dashboard Grid - Live monitoring feeds */}
+        <div className="grid grid-cols-12 gap-4" style={{ height: 'calc(100vh - 260px)', minHeight: '500px' }}>
           {/* Left Column - Transaction Feed (~45%) */}
           <div className="col-span-5 h-full overflow-hidden">
             <TransactionFeed
-              transactions={filteredTransactions}
+              transactions={transactions}
               status={transactionStatus}
               onInvestigate={handleAccountClick}
             />
@@ -123,7 +67,7 @@ export function FraudDashboard() {
             {/* Fraud Alerts (Top ~50%) */}
             <div className="flex-1 min-h-0 overflow-hidden">
               <FraudAlerts
-                alerts={filteredAlerts}
+                alerts={alerts}
                 status={alertStatus}
                 onAlertClick={handleAlertClick}
                 onAccountClick={handleAccountClick}
