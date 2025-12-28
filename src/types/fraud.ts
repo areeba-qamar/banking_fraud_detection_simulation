@@ -21,10 +21,10 @@ export interface FraudAlert {
 
 export interface AccountProfile {
   accountId: string;
-  averageSpend: number;
-  riskTier: 'LOW' | 'MEDIUM' | 'HIGH';
-  totalTransactions: number;
-  alertCount: number;
+  avgDailySpend: number;
+  avgTxAmount: number;
+  homeCountry: string;
+  riskTier: string;
 }
 
 export type AlertSeverity = 'high' | 'medium' | 'low';

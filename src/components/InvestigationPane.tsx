@@ -81,9 +81,21 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
         const alertsData = await alertsRes.json();
         setAlerts(alertsData);
 
+        // const profileRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/profile`);
+        // const profileData = await profileRes.json();
+        // setProfile(profileData);
         const profileRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/profile`);
+        console.log("PROFILE API STATUS:", profileRes.status);
+        if (!profileRes.ok) {
+         const text = await profileRes.text();
+         console.error("PROFILE API ERROR RESPONSE:", text);
+         return;
+        }
+
         const profileData = await profileRes.json();
+        console.log("PROFILE DATA FROM BACKEND:", profileData);
         setProfile(profileData);
+
 
       } catch (error) {
         console.error('Failed to fetch investigation data:', error);
