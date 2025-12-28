@@ -18,7 +18,7 @@ interface UseSSEReturn {
 }
 
 export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
-  const { useMockData = true, mockInterval = 2000 } = options;
+  const { useMockData = false, mockInterval = 2000 } = options;
   
   const [transactions, setTransactions] = useState<Transaction[]>(() => 
     useMockData ? generateInitialTransactions(15) : []
@@ -35,6 +35,9 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
   const isConnectedRef = useRef(false);
 
   const addTransaction = useCallback((txn: Transaction) => {
+
+           console.log("addTransactio txn ",txn)
+
     setTransactions(prev => [txn, ...prev.slice(0, 199)]);
   }, []);
 
@@ -66,7 +69,10 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
 
   const startRealSSE = useCallback(() => {
     if (isConnectedRef.current) return;
+    if (transactionEventSource.current || alertEventSource.current) return;
+
     isConnectedRef.current = true;
+
 
     setTransactionStatus('connecting');
     setAlertStatus('connecting');
@@ -80,7 +86,14 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
 
     transactionEventSource.current.onmessage = (event) => {
       try {
+        console.log("Eventtttt",event)
+      
+        console.log("Eventtttt_data",event.data)
+
         const txn: Transaction = JSON.parse(event.data);
+        
+        console.log("Eventtttt txn",txn)
+
         addTransaction(txn);
       } catch (error) {
         console.error('Failed to parse transaction:', error);
@@ -94,24 +107,63 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     };
 
     // Alert stream
-    alertEventSource.current = new EventSource(`${API_URL}/stream/fraud-alerts`);
+    // alertEventSource.current = new EventSource(`${API_URL}/stream/fraud-alerts`);
     
-    alertEventSource.current.onopen = () => {
-      setAlertStatus('connected');
-    };
+    // alertEventSource.current.onopen = () => {
+    //   setAlertStatus('connected');
+    // };
 
-    alertEventSource.current.onmessage = (event) => {
-      try {
-        const alert: FraudAlert = JSON.parse(event.data);
-        addAlert(alert);
-      } catch (error) {
-        console.error('Failed to parse alert:', error);
-      }
-    };
+    alertEventSource.current = new EventSource(`${API_URL}/stream/fraud-alerts`);
+
+alertEventSource.current.onopen = () => {
+  console.log("🚨 Fraud Alert SSE connected");
+  setAlertStatus('connected');
+};
+
+alertEventSource.current.addEventListener("fraud-alert", (event) => {
+  try {
+    console.log("🚨 FRAUD ALERT EVENT RAW:", event.data);
+
+    const alert: FraudAlert = JSON.parse(event.data);
+    console.log("🚨 PARSED ALERT:", alert);
+
+    addAlert(alert);
+  } catch (error) {
+    console.error("❌ Failed to parse fraud alert:", error);
+  }
+});
+
+alertEventSource.current.onerror = (err) => {
+  console.error("❌ Fraud Alert SSE error:", err);
+  setAlertStatus('error');
+  alertEventSource.current?.close();
+  isConnectedRef.current = false;
+};
+
+    // alertEventSource.current.onmessage = (event) => {
+    //   try {
+    //     const alert: FraudAlert = JSON.parse(event.data);
+    //     addAlert(alert);
+    //   } catch (error) {
+    //     console.error('Failed to parse alert:', error);
+    //   }
+    // };
+
+    transactionEventSource.current.addEventListener("transaction", (event) => {
+  try {
+    console.log("TX EVENT:", event.data);
+
+    const txn: Transaction = JSON.parse(event.data);
+    addTransaction(txn);
+  } catch (error) {
+    console.error("Failed to parse transaction:", error);
+  }
+});
 
     alertEventSource.current.onerror = () => {
       setAlertStatus('error');
       alertEventSource.current?.close();
+      isConnectedRef.current = false; // 🔥 VERY IMPORTANT
     };
   }, [addTransaction, addAlert]);
 

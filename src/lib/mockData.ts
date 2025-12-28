@@ -86,6 +86,9 @@ export function generateAccountProfile(accountId: string, alertCount: number = 0
 
 export function generateInitialTransactions(count: number = 20): Transaction[] {
   const transactions: Transaction[] = [];
+
+      console.log("generateInitialTransactions transactions", transactions)
+
   for (let i = 0; i < count; i++) {
     transactions.push(generateTransaction());
   }

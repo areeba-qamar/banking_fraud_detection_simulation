@@ -12,7 +12,7 @@ export function FraudDashboard() {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
   const { transactions, alerts, transactionStatus, alertStatus, reconnect } = useSSE({
-    useMockData: true,
+    useMockData: false,
     mockInterval: 1500,
   });
 

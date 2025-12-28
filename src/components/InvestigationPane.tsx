@@ -53,9 +53,9 @@ function formatDateTime(timestamp: string): string {
 
 export function InvestigationPane({ accountId, onClose }: InvestigationPaneProps) {
   const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [alerts, setAlerts] = useState<FraudAlert[]>([]);
-  const [profile, setProfile] = useState<AccountProfile | null>(null);
+  const [transactions, setTransactions] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+  const [profile, setProfile] = useState(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [filters, setFilters] = useState<PaneFilters>({
     minAmount: 0,
@@ -64,40 +64,40 @@ export function InvestigationPane({ accountId, onClose }: InvestigationPaneProps
   const [showFilters, setShowFilters] = useState(false);
   const { toast } = useToast();
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+
+
   useEffect(() => {
     if (!accountId) return;
 
-    const loadData = async () => {
-      setLoading(true);
+    const fetchData = async () => {
       try {
-        const [txns, alrts, prof] = await Promise.all([
-          fetchAccountTransactions(accountId),
-          fetchAccountAlerts(accountId),
-          fetchAccountProfile(accountId),
-        ]);
-        setTransactions(txns);
-        setAlerts(alrts);
-        setProfile(prof);
+        const transactionsRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/transactions`);
+        const transactionsData = await transactionsRes.json();
+        setTransactions(transactionsData);
+        
+        const alertsRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/alerts`);
+        const alertsData = await alertsRes.json();
+        setAlerts(alertsData);
+
+        const profileRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/profile`);
+        const profileData = await profileRes.json();
+        setProfile(profileData);
+
       } catch (error) {
-        console.error('Failed to load investigation data:', error);
-        toast({
-          title: 'Error loading data',
-          description: 'Could not load account investigation data',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
+        console.error('Failed to fetch investigation data:', error);
+        }
     };
 
-    loadData();
-  }, [accountId, toast]);
+    fetchData();
+  }, [accountId]);
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {
     const now = Date.now();
     const windowMs = getTimeWindowMs(filters.timeWindow);
-    
+    console.log("Transactionssssssssss",transactions)
     return transactions.filter((txn) => {
       if (new Date(txn.timestamp).getTime() < now - windowMs) return false;
       if (filters.minAmount > 0 && txn.amount < filters.minAmount) return false;
