@@ -53,8 +53,8 @@ export function FraudDashboard() {
 
         {/* Main Dashboard Grid - Live monitoring feeds */}
         <div className="grid grid-cols-12 gap-4" style={{ height: 'calc(100vh - 260px)', minHeight: '500px' }}>
-          {/* Left Column - Transaction Feed (~45%) */}
-          <div className="col-span-5 h-full overflow-hidden">
+          {/* Left Column - Transaction Feed (~58%) - expanded for better visibility */}
+          <div className="col-span-7 h-full overflow-hidden">
             <TransactionFeed
               transactions={transactions}
               status={transactionStatus}
@@ -62,8 +62,8 @@ export function FraudDashboard() {
             />
           </div>
 
-          {/* Right Column (~55%) */}
-          <div className="col-span-7 flex flex-col gap-4 h-full overflow-hidden">
+          {/* Right Column (~42%) */}
+          <div className="col-span-5 flex flex-col gap-4 h-full overflow-hidden">
             {/* Fraud Alerts (Top ~50%) */}
             <div className="flex-1 min-h-0 overflow-hidden">
               <FraudAlerts
