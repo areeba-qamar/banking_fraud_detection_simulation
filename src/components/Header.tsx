@@ -43,7 +43,7 @@ export function Header({ onReconnect, transactionStatus, alertStatus }: HeaderPr
               <Shield className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight">Fraud Detection System</h1>
+              <h1 className="text-xl font-bold tracking-tight">Banking Fraud Detection Simulation</h1>
               <p className="text-sm text-muted-foreground">Real-time Transaction Monitoring</p>
             </div>
           </div>
