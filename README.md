@@ -1,73 +1,87 @@
-# Welcome to your Lovable project
+Banking Fraud Detection Dashboard (Frontend)
+Project Info
 
-## Project info
+Project URL: http://localhost:3000
+ (Local)
+GitHub Repo: https://github.com/areeba-qamar/banking_fraud_detection_simulation.git
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+This frontend provides a real-time dashboard for banking transactions and fraud alerts. It connects to the backend service, listens to live transaction streams via SSE, and visualizes fraud alerts, metrics, and transaction history.
 
-## How can I edit this code?
+How Can I Edit This Code?
+1. Using Lovable
 
-There are several ways of editing your application.
+If your project is on Lovable, open the project here
+ and make edits. Changes are automatically committed to the repo.
 
-**Use Lovable**
+2. Using Your Local IDE
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+You can also work locally:
 
-Changes made via Lovable will be committed automatically to this repo.
+# Clone the repository
+git clone https://github.com/areeba-qamar/banking_fraud_detection_simulation.git
 
-**Use your preferred IDE**
+# Navigate to frontend folder
+cd banking_fraud_detection_simulation
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+# Install dependencies
+npm install
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
-```
 
-**Edit a file directly in GitHub**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Open your browser at http://localhost:3000 to view the dashboard.
 
-**Use GitHub Codespaces**
+3. Edit Directly on GitHub
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Navigate to the file(s) in the repo.
 
-## What technologies are used for this project?
+Click the pencil icon to edit and commit changes.
 
-This project is built with:
+4. GitHub Codespaces
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Go to the repo main page → Click Code → Codespaces → New codespace.
 
-## How can I deploy this project?
+Edit files inside Codespaces, commit, and push changes.
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Technologies Used
 
-## Can I connect a custom domain to my Lovable project?
+React (Vite + TypeScript) – Frontend framework
 
-Yes, you can!
+Tailwind CSS & shadcn-ui – Styling and UI components
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Server-Sent Events (SSE) – Real-time transaction and alert streaming
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Fetch API / Axios – Backend communication
+
+Running the Dashboard
+
+Make sure backend service is running and accessible (http://localhost:8080).
+
+Start the frontend dev server:
+
+npm run dev
+
+
+Open http://localhost:3000 in your browser.
+
+The dashboard displays:
+
+Recent transactions
+
+Live fraud alerts
+
+Metrics (total transactions today, alerts per second, top risky accounts)
+
+Deploying
+
+If using Lovable, click Share → Publish.
+
+For custom domains, navigate to Project → Settings → Domains → Connect Domain.
+
+For manual deployment, build with:
+
+npm run build
+
+
+and serve the dist/ folder via any static file server.
