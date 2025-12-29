@@ -66,44 +66,88 @@ export function InvestigationPane({ accountId, onClose }: InvestigationPaneProps
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+useEffect(() => {
+  if (!accountId) return;
+
+  const fetchData = async () => {
+    setLoading(true); // start loading
+
+    try {
+      // Fetch transactions
+      const transactionsRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/transactions`);
+      if (!transactionsRes.ok) throw new Error('Failed to fetch transactions');
+      const transactionsData = await transactionsRes.json();
+      setTransactions(transactionsData);
+
+      // Fetch alerts
+      const alertsRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/alerts`);
+      if (!alertsRes.ok) throw new Error('Failed to fetch alerts');
+      const alertsData = await alertsRes.json();
+      setAlerts(alertsData);
+
+      // Fetch profile
+      const profileRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/profile`);
+      if (!profileRes.ok) {
+        const text = await profileRes.text();
+        console.error("PROFILE API ERROR RESPONSE:", text);
+        setProfile(null);
+        return;
+      }
+      const profileData = await profileRes.json();
+      setProfile(profileData);
+
+    } catch (error) {
+      console.error('Failed to fetch investigation data:', error);
+      setProfile(null);
+      setTransactions([]);
+      setAlerts([]);
+    } finally {
+      setLoading(false); // stop loading in all cases
+    }
+  };
+
+  fetchData();
+}, [accountId]);
 
 
-  useEffect(() => {
-    if (!accountId) return;
+  // useEffect(() => {
+  //   if (!accountId) return;
 
-    const fetchData = async () => {
-      try {
-        const transactionsRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/transactions`);
-        const transactionsData = await transactionsRes.json();
-        setTransactions(transactionsData);
+  //   const fetchData = async () => {
+  //     try {
+  //       const transactionsRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/transactions`);
+  //       const transactionsData = await transactionsRes.json();
+  //       setTransactions(transactionsData);
         
-        const alertsRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/alerts`);
-        const alertsData = await alertsRes.json();
-        setAlerts(alertsData);
+  //       const alertsRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/alerts`);
+  //       const alertsData = await alertsRes.json();
+  //       setAlerts(alertsData);
 
-        // const profileRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/profile`);
-        // const profileData = await profileRes.json();
-        // setProfile(profileData);
-        const profileRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/profile`);
-        console.log("PROFILE API STATUS:", profileRes.status);
-        if (!profileRes.ok) {
-         const text = await profileRes.text();
-         console.error("PROFILE API ERROR RESPONSE:", text);
-         return;
-        }
+  //       // const profileRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/profile`);
+  //       // const profileData = await profileRes.json();
+  //       // setProfile(profileData);
+  //       const profileRes = await fetch(`${API_BASE_URL}/api/accounts/${accountId}/profile`);
+  //       console.log("PROFILE API STATUS:", profileRes.status);
+  //       if (!profileRes.ok) {
+  //        const text = await profileRes.text();
+  //        console.error("PROFILE API ERROR RESPONSE:", text);
+        
+  //        return;
 
-        const profileData = await profileRes.json();
-        console.log("PROFILE DATA FROM BACKEND:", profileData);
-        setProfile(profileData);
+  //       }
+
+  //       const profileData = await profileRes.json();
+  //       console.log("PROFILE DATA FROM BACKEND:", profileData);
+  //       setProfile(profileData);
 
 
-      } catch (error) {
-        console.error('Failed to fetch investigation data:', error);
-        }
-    };
+  //     } catch (error) {
+  //       console.error('Failed to fetch investigation data:', error);
+  //       }
+  //   };
 
-    fetchData();
-  }, [accountId]);
+  //   fetchData();
+  // }, [accountId]);
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {
@@ -241,35 +285,48 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
       ) : (
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-6">
-            {/* Account Profile */}
-            {profile && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  Account Profile
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 rounded-lg bg-muted/30">
-                    <p className="text-xs text-muted-foreground">Avg Spend</p>
-                    <p className="font-mono font-semibold">{formatAmount(profile.averageSpend)}</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-muted/30">
-                    <p className="text-xs text-muted-foreground">Risk Tier</p>
-                    <Badge variant={profile.riskTier === 'HIGH' ? 'high' : profile.riskTier === 'MEDIUM' ? 'medium' : 'safe'}>
-                      {profile.riskTier}
-                    </Badge>
-                  </div>
-                  <div className="p-3 rounded-lg bg-muted/30">
-                    <p className="text-xs text-muted-foreground">Total Txns</p>
-                    <p className="font-mono font-semibold">{profile.totalTransactions}</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-muted/30">
-                    <p className="text-xs text-muted-foreground">Alert Count</p>
-                    <p className="font-mono font-semibold text-severity-high">{profile.alertCount}</p>
-                  </div>
-                </div>
-              </div>
-            )}
+            
+
+{/* Account Profile */}
+{profile && (
+  <div className="space-y-3">
+    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+      <Shield className="w-4 h-4" />
+      Account Profile
+    </h3>
+    <div className="grid grid-cols-2 gap-3">
+      <div className="p-3 rounded-lg bg-muted/30">
+        <p className="text-xs text-muted-foreground">Avg Daily Spend</p>
+        <p className="font-mono font-semibold">{profile.avgDailySpend}</p>
+      </div>
+      <div className="p-3 rounded-lg bg-muted/30">
+        <p className="text-xs text-muted-foreground">Avg Transaction Amount</p>
+        <p className="font-mono font-semibold">{profile.avgTxnAmount}</p>
+      </div>
+      <div className="p-3 rounded-lg bg-muted/30">
+        <p className="text-xs text-muted-foreground">Risk Tier</p>
+        <Badge
+          variant={
+            profile.riskTier === 'HIGH'
+              ? 'high'
+              : profile.riskTier === 'MEDIUM'
+              ? 'medium'
+              : 'safe'
+          }
+        >
+          {profile.riskTier}
+        </Badge>
+      </div>
+      <div className="p-3 rounded-lg bg-muted/30">
+        <p className="text-xs text-muted-foreground">Home Country</p>
+        <p className="font-mono font-semibold">{profile.homeCountry}</p>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
 
             {/* Action Buttons */}
             <div className="flex gap-2">

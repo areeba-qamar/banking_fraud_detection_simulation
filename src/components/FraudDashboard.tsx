@@ -19,10 +19,13 @@ export function FraudDashboard() {
   const metrics = useMetrics(transactions, alerts);
 
   const handleAlertClick = (alert: FraudAlert) => {
+    console.log("Alertttttttttttttttttttttttttttt  ",alert )
     setSelectedAccountId(alert.accountId);
   };
 
   const handleAccountClick = (accountId: string) => {
+    console.log("Account idddddddddddddddd ", accountId )
+    
     setSelectedAccountId(accountId);
   };
 
